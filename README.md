@@ -1,4 +1,4 @@
-# 🐍 Zourorobros-Seedkit
+# 🐍 Zouroboros-Seedkit
 
 **Specification-first AI development skills for [Zo Computer](https://zocomputer.com).**
 
