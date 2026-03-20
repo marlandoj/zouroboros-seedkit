@@ -1,10 +1,10 @@
-# 🐍 Zouroboros-Seedkit
+# 🐍 Zouroboros
 
 **Specification-first AI development skills for [Zo Computer](https://zocomputer.com).**
 
-Stop telling AI what to build before you've defined what _should_ be built. Zo-Ouroboros adds a Socratic interview → immutable seed spec → 3-stage evaluation loop to your Zo workspace — plus 5 lateral-thinking personas for when you're stuck.
+Stop telling AI what to build before you've defined what _should_ be built. Zouroboros adds a Socratic interview → immutable seed spec → 3-stage evaluation loop to your Zo workspace — plus 5 lateral-thinking personas for when you're stuck.
 
-Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros) by [@Q00](https://github.com/Q00). The upstream project is a Python-based specification-first AI development system with Claude Code integration. Zo-Ouroboros is a native Zo Computer port — zero Python dependencies, all TypeScript/Bun, designed to run as [Zo Skills](https://agentskills.io/specification) and IDENTITY personas.
+Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros) by [@Q00](https://github.com/Q00). The upstream project is a Python-based specification-first AI development system with Claude Code integration. Zouroboros is a native Zo Computer port — zero Python dependencies, all TypeScript/Bun, designed to run as [Zo Skills](https://agentskills.io/specification) and IDENTITY personas.
 
 ---
 
@@ -46,28 +46,28 @@ Copy the skills and personas into your workspace:
 
 ```bash
 # Clone the repo
-git clone https://github.com/marlandoj/Zo-Ouroboros.git /tmp/zo-ouroboros
+git clone https://github.com/marlandoj/zouroboros-seedkit.git /tmp/zouroboros
 
 # Copy skills into your Skills directory
-cp -r /tmp/zo-ouroboros/skills/spec-first-interview ~/Skills/
-cp -r /tmp/zo-ouroboros/skills/three-stage-eval ~/Skills/
-cp -r /tmp/zo-ouroboros/skills/unstuck-lateral ~/Skills/
+cp -r /tmp/zouroboros/skills/spec-first-interview ~/Skills/
+cp -r /tmp/zouroboros/skills/three-stage-eval ~/Skills/
+cp -r /tmp/zouroboros/skills/unstuck-lateral ~/Skills/
 
 # Copy personas into your IDENTITY directory
-cp /tmp/zo-ouroboros/personas/unstuck-*.md ~/IDENTITY/
+cp /tmp/zouroboros/personas/unstuck-*.md ~/IDENTITY/
 
 # Clean up
-rm -rf /tmp/zo-ouroboros
+rm -rf /tmp/zouroboros
 ```
 
 Or just ask Zo:
 
-> "Install Zo-Ouroboros from https://github.com/marlandoj/Zo-Ouroboros"
+> "Install Zouroboros from https://github.com/marlandoj/zouroboros-seedkit"
 
 ### One-liner
 
 ```bash
-git clone https://github.com/marlandoj/Zo-Ouroboros.git /tmp/zo-ouroboros && cp -r /tmp/zo-ouroboros/skills/* ~/Skills/ && cp /tmp/zo-ouroboros/personas/*.md ~/IDENTITY/ && rm -rf /tmp/zo-ouroboros && echo "✅ Zo-Ouroboros installed"
+git clone https://github.com/marlandoj/zouroboros-seedkit.git /tmp/zouroboros && cp -r /tmp/zouroboros/skills/* ~/Skills/ && cp /tmp/zouroboros/personas/*.md ~/IDENTITY/ && rm -rf /tmp/zouroboros && echo "✅ Zouroboros installed"
 ```
 
 ### Verify
@@ -278,7 +278,7 @@ bun Skills/three-stage-eval/scripts/evaluate.ts \
 ## File Structure
 
 ```
-Zo-Ouroboros/
+Zouroboros/
 ├── README.md
 ├── LICENSE
 ├── skills/
@@ -374,7 +374,7 @@ Key concepts ported from the upstream project:
 
 Also inspired by patterns from [potentialInc/claude-ooo](https://github.com/potentialInc/claude-ooo), a downstream fork that extended the ouroboros interviewer and evaluator agents.
 
-Zo-Ouroboros is a clean-room re-implementation for the Zo Computer ecosystem — zero Python dependencies, native TypeScript/Bun, Zo Skills format, and IDENTITY persona integration.
+Zouroboros is a clean-room re-implementation for the Zo Computer ecosystem — zero Python dependencies, native TypeScript/Bun, Zo Skills format, and IDENTITY persona integration.
 
 ---
 
