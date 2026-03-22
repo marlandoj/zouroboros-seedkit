@@ -1,40 +1,51 @@
 # 🐍 Zouroboros
 
-**Specification-first AI development skills for [Zo Computer](https://zocomputer.com).**
+**Self-learning AI development skills for [Zo Computer](https://zocomputer.com).**
 
-Stop telling AI what to build before you've defined what _should_ be built. Zouroboros adds a Socratic interview → immutable seed spec → 3-stage evaluation loop to your Zo workspace — plus 5 lateral-thinking personas for when you're stuck.
+Zouroboros is a self-enhancing AI development toolkit. It starts with specification-first development — Socratic interviews, immutable seed specs, and 3-stage evaluation. Then it closes the loop: the system diagnoses its own health, prescribes improvements, executes them autonomously, and verifies the results.
 
-Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros) by [@Q00](https://github.com/Q00). The upstream project is a Python-based specification-first AI development system with Claude Code integration. Zouroboros is a native Zo Computer port — zero Python dependencies, all TypeScript/Bun, designed to run as [Zo Skills](https://agentskills.io/specification) and IDENTITY personas.
+The snake eats its own tail.
+
+```
+Interview → Seed → Execute → Evaluate
+    ↑                           ↓
+    ↑     Introspect → Prescribe → Evolve
+    ↑         ↑                      ↓
+    └─────────┴──────────────────────┘
+```
+
+Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros). Native TypeScript/Bun, zero Python dependencies, designed as [Zo Skills](https://agentskills.io/specification).
 
 ---
 
 ## What's Included
 
-### Skills
+### Foundational Skills
 
 | Skill | Description |
 |-------|-------------|
-| **spec-first-interview** | Socratic interview that scores ambiguity, then generates an immutable seed specification |
-| **three-stage-eval** | Mechanical → Semantic → Consensus verification pipeline for any artifact |
+| **spec-first-interview** | Socratic interview → ambiguity scoring → immutable seed YAML |
+| **three-stage-eval** | Mechanical → Semantic → Consensus verification pipeline |
 | **unstuck-lateral** | 5 lateral-thinking personas to break through stagnation |
+
+### Self-Enhancement Skills (the closed loop)
+
+| Skill | Description |
+|-------|-------------|
+| **zouroboros-introspect** | Self-diagnostic health scorecard across 6 system metrics |
+| **zouroboros-prescribe** | Auto-generates improvement seeds from scorecard, with governor safety gate |
+| **zouroboros-evolve** | Executes prescriptions, measures delta, reverts regressions |
 
 ### Personas
 
-| Persona | When You're Stuck Because... |
-|---------|------------------------------|
-| **Hacker** | "I can't get past this error / constraint" |
-| **Researcher** | "I don't understand why this is happening" |
-| **Simplifier** | "This is too complex / scope is too big" |
-| **Architect** | "Simple changes touch everything" |
-| **Contrarian** | "Are we even solving the right problem?" |
-
-### The Loop
-
-```
-Interview → Seed → Execute → Evaluate
-    ↑                           ↓
-    └─── Evolutionary Loop ─────┘
-```
+| Persona | Purpose |
+|---------|---------|
+| **Zouroboros** | The self-enhancement engine — clinical, metric-driven, autonomous |
+| **Hacker** | Break past constraints creatively |
+| **Researcher** | Stop and investigate systematically |
+| **Simplifier** | Cut to MVP ruthlessly |
+| **Architect** | Fix structural problems |
+| **Contrarian** | Question the problem itself |
 
 ---
 
@@ -42,236 +53,192 @@ Interview → Seed → Execute → Evaluate
 
 ### Zo Computer (recommended)
 
-Copy the skills and personas into your workspace:
-
 ```bash
-# Clone the repo
-git clone https://github.com/marlandoj/zouroboros-seedkit.git /tmp/zouroboros
-
-# Copy skills into your Skills directory
-cp -r /tmp/zouroboros/skills/spec-first-interview ~/Skills/
-cp -r /tmp/zouroboros/skills/three-stage-eval ~/Skills/
-cp -r /tmp/zouroboros/skills/unstuck-lateral ~/Skills/
-
-# Copy personas into your IDENTITY directory
-cp /tmp/zouroboros/personas/unstuck-*.md ~/IDENTITY/
-
-# Clean up
+git clone https://github.com/marlandoj/Zo-Ouroboros.git /tmp/zouroboros
+bash /tmp/zouroboros/install.sh
 rm -rf /tmp/zouroboros
 ```
-
-Or just ask Zo:
-
-> "Install Zouroboros from https://github.com/marlandoj/zouroboros-seedkit"
 
 ### One-liner
 
 ```bash
-git clone https://github.com/marlandoj/zouroboros-seedkit.git /tmp/zouroboros && cp -r /tmp/zouroboros/skills/* ~/Skills/ && cp /tmp/zouroboros/personas/*.md ~/IDENTITY/ && rm -rf /tmp/zouroboros && echo "✅ Zouroboros installed"
+git clone https://github.com/marlandoj/Zo-Ouroboros.git /tmp/zouroboros && bash /tmp/zouroboros/install.sh && rm -rf /tmp/zouroboros
 ```
 
-### Verify
+### Environment Variables (optional)
 
-```bash
-bun ~/Skills/spec-first-interview/scripts/interview.ts --help
-bun ~/Skills/three-stage-eval/scripts/evaluate.ts --help
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ZOUROBOROS_WORKSPACE` | `$HOME` | Root workspace path |
+| `ZOUROBOROS_SKILLS_DIR` | `$HOME/Skills` | Where skills are installed |
+| `ZOUROBOROS_IDENTITY_DIR` | `$HOME/IDENTITY` | Where persona files go |
+| `ZOUROBOROS_SEEDS_DIR` | `$HOME/Seeds/zouroboros` | Where prescriptions are saved |
+| `ZOUROBOROS_MEMORY_DB` | `$HOME/.zo/memory/shared-facts.db` | SQLite memory database |
+| `ZOUROBOROS_MEMORY_SCRIPTS` | `$HOME/Skills/zo-memory-system/scripts` | Memory system CLI |
+
+### Prerequisites
+
+- [Bun](https://bun.sh) runtime (v1.0+)
+- SQLite3 CLI
+- [zo-memory-system](https://github.com/zocomputer/skills) skill (for memory DB, graph, episodes, procedures)
+- Optional: [Ollama](https://ollama.ai) with `qwen2.5:1.5b` + `nomic-embed-text` (for memory gate + embeddings)
+- Optional: [autoloop](https://github.com/zocomputer/skills) skill (for file-targeting metric optimization)
 
 ---
 
 ## Quick Start
 
-### Via Zo Chat (natural language)
+### 1. Score a request
 
-You don't need to touch the terminal. Just talk to Zo:
-
-**Interview before building:**
-> "Run the spec-first-interview skill for: build a webhook retry system with exponential backoff"
-
-Zo will conduct a Socratic interview — asking 5-8 focused questions about your goal, constraints, and success criteria. When ambiguity drops below 20%, it generates an immutable seed spec.
-
-**Check if a request is too vague:**
-> "Score the ambiguity of: make the site better"
-
-Zo will tell you exactly what's unclear and what to clarify.
-
-**Evaluate an artifact against a spec:**
-> "Run the three-stage-eval skill against Skills/spec-first-interview/ using the seed at /path/to/seed.yaml"
-
-Zo runs mechanical checks (compile, lint, test), then evaluates acceptance criteria, and triggers consensus if needed.
-
-**Get unstuck:**
-> "I'm stuck — the webhook handler keeps timing out and I can't figure out why"
-
-Zo auto-selects the right lateral-thinking persona (Researcher in this case) and attacks the problem from a fresh angle.
-
-> "I'm stuck — this is way too complex, there are too many moving parts"
-
-Zo switches to the Simplifier persona and starts cutting to MVP.
-
-**Use a specific unstuck persona:**
-> "Switch to the unstuck-hacker persona — I need to bypass this API rate limit"
-
-### Via Terminal (CLI)
-
-**Score ambiguity of a request:**
 ```bash
 bun Skills/spec-first-interview/scripts/interview.ts score \
-  --request "Build a REST API for user auth with JWT tokens that returns 401 on invalid credentials"
+  --request "Add rate limiting to the API"
+```
+
+### 2. Run the self-diagnostic
+
+```bash
+bun Skills/zouroboros-introspect/scripts/introspect.ts --verbose
 ```
 
 Output:
 ```
-Ambiguity Score
-===============
-Request: "Build a REST API for user auth with JWT tokens that returns 401 on invalid credentials"
-
-  Goal clarity:       0.70 / 1.00  (weight: 40%)
-  Constraint clarity: 0.25 / 1.00  (weight: 30%)
-  Success criteria:   0.30 / 1.00  (weight: 30%)
-
-  Ambiguity:          0.55 / 1.00  (threshold: ≤ 0.20)
-
-Assessment: NEEDS CLARIFICATION — Run a Socratic interview to fill gaps.
+╔════════════════════════════════════════════════════════╗
+║  ZOUROBOROS INTROSPECTION SCORECARD                     ║
+╠════════════════════════════════════════════════════════╣
+║  ✅ Memory Recall          100.0% → score:100%  ║
+║  ✅ Graph Connectivity      90.0% → score:100%  ║
+║  ⚠️  Routing Accuracy        N/A   → score: 50%  ║
+║  ⚠️  Eval Calibration        N/A   → score: 50%  ║
+║  ⚠️  Procedure Freshness     N/A   → score: 50%  ║
+║  ⚠️  Episode Velocity        N/A   → score: 50%  ║
+╠════════════════════════════════════════════════════════╣
+║  ⚠️  COMPOSITE HEALTH: 70/100                          ║
+║     Weakest: Routing Accuracy                           ║
+╚════════════════════════════════════════════════════════╝
 ```
 
-**Score a vague request:**
+### 3. Run the full self-enhancement pipeline
+
 ```bash
-bun Skills/spec-first-interview/scripts/interview.ts score \
-  --request "Make the site better"
+# Introspect → identify weakest metric
+bun Skills/zouroboros-introspect/scripts/introspect.ts --json > /tmp/scorecard.json
+
+# Prescribe → generate improvement seed
+bun Skills/zouroboros-prescribe/scripts/prescribe.ts --scorecard /tmp/scorecard.json
+
+# Evolve → execute the prescription
+bun Skills/zouroboros-evolve/scripts/evolve.ts --prescription Seeds/zouroboros/rx-*.json
 ```
 
-Output:
-```
-Ambiguity Score
-===============
-Request: "Make the site better"
+### 4. Schedule it (Zo Computer)
 
-  Goal clarity:       0.05 / 1.00  (weight: 40%)
-  Constraint clarity: 0.00 / 1.00  (weight: 30%)
-  Success criteria:   0.00 / 1.00  (weight: 30%)
-
-  Ambiguity:          0.98 / 1.00  (threshold: ≤ 0.20)
-
-Assessment: HIGH AMBIGUITY — Significant interview required before any implementation.
-```
-
-**Generate a seed spec template:**
-```bash
-bun Skills/spec-first-interview/scripts/interview.ts seed \
-  --topic "Webhook retry system" \
-  --output ./seeds/
-```
-
-**Generate from interview notes:**
-```bash
-bun Skills/spec-first-interview/scripts/interview.ts seed \
-  --topic "Webhook retry system" \
-  --from ./interview-notes.md \
-  --output ./seeds/
-```
-
-**Evaluate an artifact (mechanical checks):**
-```bash
-bun Skills/three-stage-eval/scripts/evaluate.ts \
-  --artifact ./my-project/ \
-  --seed ./seeds/seed-abc123.yaml
-```
-
-**Run only Stage 1 (fast, $0):**
-```bash
-bun Skills/three-stage-eval/scripts/evaluate.ts \
-  --artifact ./my-project/ \
-  --seed ./seeds/seed-abc123.yaml \
-  --stage 1
-```
-
-**Force consensus evaluation:**
-```bash
-bun Skills/three-stage-eval/scripts/evaluate.ts \
-  --artifact ./my-project/ \
-  --seed ./seeds/seed-abc123.yaml \
-  --force-consensus
-```
+Create a scheduled agent that runs the pipeline daily. The Zouroboros persona handles the rest autonomously — diagnosing, prescribing, executing, and reporting via email.
 
 ---
 
-## Examples
+## The Self-Enhancement Loop
 
-### Example 1: New Feature Build
+### How It Works
 
-```
-You: "Run the spec-first-interview skill for: add Stripe webhook handling to the site"
+1. **Introspect** — Measures 6 health metrics across memory, graph, routing, eval, procedures, and episode velocity. Outputs a composite score (0–100) and ranks improvement opportunities.
 
-Zo: "What specific Stripe events do you need to handle? 
-     (e.g., checkout.session.completed, payment_intent.succeeded, subscription changes)"
+2. **Prescribe** — Maps the weakest metric to one of 12 playbooks. Generates a seed YAML (spec-first format) and optionally a program.md (autoloop format). A governor gate blocks high-risk prescriptions.
 
-You: "Checkout completed and subscription created"
+3. **Evolve** — Executes the prescription via autoloop (file-targeting) or script mode (procedural). Captures pre/post scorecards. Reverts on regression.
 
-Zo: "What should happen when a checkout completes? 
-     Should it update a database, send a confirmation email, provision access, or something else?"
+### 6 Health Metrics
 
-You: "Update the order status in our database and send a confirmation email"
+| Metric | Source | Target | Weight |
+|--------|--------|--------|--------|
+| Memory Recall | Continuation eval fixture pass rate | ≥ 85% | 0.25 |
+| Graph Connectivity | Knowledge graph orphan fact ratio | ≥ 80% linked | 0.15 |
+| Routing Accuracy | Swarm episode success rate | ≥ 85% | 0.20 |
+| Eval Calibration | Stage 3 override rate | ≤ 15% | 0.15 |
+| Procedure Freshness | Stale procedure ratio (14+ days) | ≤ 30% | 0.15 |
+| Episode Velocity | 7-day success trend vs prior 7 days | Positive | 0.10 |
 
-Zo: [continues for 3-5 more questions until ambiguity ≤ 0.2]
-Zo: "Ambiguity is now at 0.15. Generating seed specification..."
-Zo: [produces seed-abc123.yaml with goal, constraints, acceptance criteria, and ontology]
-```
+### 12 Playbooks
 
-### Example 2: Evaluating Work
+| ID | Playbook | Metric | Severity |
+|----|----------|--------|----------|
+| A | Fixture Expansion | Memory Recall | WARNING |
+| B | Graph-Boost Weight Tuning | Memory Recall | CRITICAL |
+| C | Batch Wikilink Extraction | Graph Connectivity | WARNING |
+| D | Entity Consolidation | Graph Connectivity | CRITICAL |
+| E | Signal Weight Adjustment | Routing Accuracy | WARNING |
+| F | Capability Keyword Expansion | Routing Accuracy | CRITICAL ⚠️ |
+| G | Drift Threshold Adjustment | Eval Calibration | WARNING |
+| H | Semantic Fixture Addition | Eval Calibration | CRITICAL ⚠️ |
+| I | Batch Procedure Evolution | Procedure Freshness | WARNING |
+| J | Procedure Regeneration | Procedure Freshness | CRITICAL |
+| K | Failure Root-Cause Analysis | Episode Velocity | WARNING |
+| L | Executor Health Check | Episode Velocity | CRITICAL ⚠️ |
 
-```
-You: "Evaluate Skills/spec-first-interview/ with three-stage-eval"
+⚠️ = Requires human approval (governor blocks autonomous execution)
 
-Zo: "Running mechanical checks...
+### Governor Safety Rules
 
-     Stage 1: Mechanical Verification
-       [PASS] Files exist: 7 files found
-       [PASS] TypeScript compile: No type errors
-     Result: PASSED
+The governor prevents runaway self-modification:
 
-     Stage 2: Semantic Evaluation
-       No acceptance criteria found in seed. Define criteria to enable semantic evaluation.
+1. **Approval gate** — Playbooks marked ⚠️ require human approval before execution
+2. **Schema protection** — Never touches database migrations or structure
+3. **Blast radius limit** — Max 3 files modified per cycle
+4. **Weight bounds** — Routing/scoring weights can only change ±10% per cycle
+5. **Regression detection** — Any metric dropping >2% triggers automatic revert
+6. **Audit trail** — Every cycle stored as a memory episode with full metadata
 
-     Final Decision: PENDING SEMANTIC EVALUATION"
-```
+---
 
-### Example 3: Getting Unstuck
+## Foundational Skills
 
-```
-You: "I'm stuck — the API keeps returning 403 and the docs say I have the right scopes"
+### Spec-First Interview
 
-Zo: [auto-selects Researcher persona]
-    "Let me investigate systematically:
-     1. What exact endpoint are you calling?
-     2. What HTTP method? (GET/POST/PUT — some endpoints require specific methods)
-     3. Are you in a sandbox/test environment or production?
-     4. When did this last work? What changed since then?"
-```
+Scores ambiguity across three dimensions:
 
-### Example 4: Full Loop
+| Dimension | Weight |
+|-----------|--------|
+| Goal clarity | 40% |
+| Constraint clarity | 30% |
+| Success criteria | 30% |
+
+**Ambiguity** = 1 − (goal × 0.40 + constraints × 0.30 + success × 0.30)
+
+Gate passes at ambiguity ≤ 0.20. Output is an immutable seed YAML.
 
 ```bash
-# 1. Score the request
+bun Skills/spec-first-interview/scripts/interview.ts score --request "Make the site faster"
+# → Ambiguity: 0.98 — HIGH AMBIGUITY
+
 bun Skills/spec-first-interview/scripts/interview.ts score \
-  --request "Add rate limiting to the API"
-# → Ambiguity: 0.72 — NEEDS CLARIFICATION
-
-# 2. Run the interview (via Zo chat)
-# → Zo asks focused questions, gets ambiguity to 0.18
-
-# 3. Generate the seed
-bun Skills/spec-first-interview/scripts/interview.ts seed \
-  --topic "Rate limiting" --from ./interview-notes.md --output ./seeds/
-
-# 4. Build the feature
-# → (implementation happens here)
-
-# 5. Evaluate against the seed
-bun Skills/three-stage-eval/scripts/evaluate.ts \
-  --artifact ./src/ --seed ./seeds/seed-xyz.yaml
-# → Stage 1: PASSED, Stage 2: 0.85, Final: APPROVED
+  --request "Add Redis caching to the /api/products endpoint using a 5-minute TTL that invalidates on product updates"
+# → Ambiguity: 0.15 — READY
 ```
+
+### Three-Stage Evaluation
+
+| Stage | Cost | Checks |
+|-------|------|--------|
+| 1. Mechanical | $0 | Compile, lint, test, coverage |
+| 2. Semantic | Low | AC compliance, goal alignment, drift score |
+| 3. Consensus | Medium | 3-perspective deliberation (if drift > 0.3 or score uncertain) |
+
+```bash
+bun Skills/three-stage-eval/scripts/evaluate.ts \
+  --artifact ./my-project/ --seed ./seeds/seed-abc.yaml
+```
+
+### Unstuck Lateral
+
+Auto-selects the right persona based on problem signals:
+
+| Signal | Persona |
+|--------|---------|
+| "error", "can't", "constraint" | Hacker |
+| "don't understand", "why" | Researcher |
+| "too complex", "overwhelming" | Simplifier |
+| "keeps breaking", "touching everything" | Architect |
+| "wrong approach", "step back" | Contrarian |
 
 ---
 
@@ -281,31 +248,33 @@ bun Skills/three-stage-eval/scripts/evaluate.ts \
 Zouroboros/
 ├── README.md
 ├── LICENSE
+├── install.sh                          # Installer script
+├── zouroboros.config.ts                # Portable path configuration
 ├── skills/
-│   ├── spec-first-interview/
-│   │   ├── SKILL.md              # Skill definition (Agent Skills spec)
-│   │   ├── scripts/
-│   │   │   └── interview.ts      # CLI: score, seed, interview
-│   │   └── references/
-│   │       ├── socratic-interviewer.md
-│   │       ├── seed-architect.md
-│   │       └── ontologist.md
-│   ├── three-stage-eval/
+│   ├── spec-first-interview/           # Socratic interview + seed generation
 │   │   ├── SKILL.md
-│   │   ├── scripts/
-│   │   │   └── evaluate.ts       # CLI: mechanical + semantic eval
+│   │   ├── scripts/interview.ts
 │   │   └── references/
-│   │       ├── evaluator.md
-│   │       └── qa-judge.md
-│   └── unstuck-lateral/
+│   ├── three-stage-eval/               # 3-stage verification pipeline
+│   │   ├── SKILL.md
+│   │   ├── scripts/evaluate.ts
+│   │   └── references/
+│   ├── unstuck-lateral/                # 5 lateral-thinking personas
+│   │   ├── SKILL.md
+│   │   └── references/
+│   ├── zouroboros-introspect/          # Self-diagnostic scorecard
+│   │   ├── SKILL.md
+│   │   ├── scripts/introspect.ts
+│   │   └── references/metric-thresholds.md
+│   ├── zouroboros-prescribe/           # Self-prescription engine
+│   │   ├── SKILL.md
+│   │   ├── scripts/prescribe.ts
+│   │   └── references/playbooks.md
+│   └── zouroboros-evolve/              # Evolution executor
 │       ├── SKILL.md
-│       └── references/
-│           ├── hacker.md
-│           ├── researcher.md
-│           ├── simplifier.md
-│           ├── architect.md
-│           └── contrarian.md
+│       └── scripts/evolve.ts
 └── personas/
+    ├── zouroboros.md                   # Self-enhancement persona template
     ├── unstuck-hacker.md
     ├── unstuck-researcher.md
     ├── unstuck-simplifier.md
@@ -315,66 +284,79 @@ Zouroboros/
 
 ---
 
-## Requirements
+## Architecture
 
-- [Zo Computer](https://zocomputer.com) workspace (or any environment with [Bun](https://bun.sh) installed)
-- No external dependencies — all scripts use Bun built-ins only
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      USER (Approval)                         │
+│   • Reviews high-risk prescriptions                          │
+│   • Receives daily email scorecards                          │
+│   • Can override governor, adjust thresholds                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+  │  INTROSPECT │→│  PRESCRIBE  │→│   EVOLVE    │
+  │  (measure)  │ │  (plan)     │ │  (execute)  │
+  │             │ │             │ │             │
+  │ 6 metrics   │ │ 12 playbooks│ │ Autoloop or │
+  │ Composite   │ │ Governor    │ │ Script mode │
+  │ score 0-100 │ │ Seed YAML   │ │ Pre/post    │
+  │             │ │ Program.md  │ │ scorecard   │
+  └──────┬──────┘ └─────────────┘ └──────┬──────┘
+         │                                │
+         │        ┌─────────────┐         │
+         └───────→│   MEMORY    │←────────┘
+                  │             │
+                  │ Facts       │
+                  │ Episodes    │
+                  │ Procedures  │
+                  │ Graph       │
+                  └─────────────┘
+```
+
+### Dependencies
+
+Zouroboros builds on these Zo Computer subsystems:
+
+| System | Role | Required? |
+|--------|------|-----------|
+| **zo-memory-system** | Facts, episodes, procedures, graph, embeddings | Yes |
+| **zo-swarm-orchestrator** | Parallel task execution with 6-signal routing | For routing metrics |
+| **autoloop** | Single-metric file optimization | For file-targeting playbooks |
+| **Ollama** | Local inference (memory gate, auto-capture, procedure evolution) | For memory gate |
 
 ---
 
-## How It Works
+## Extending
 
-### Spec-First Interview
+### Adding a New Metric
 
-The Socratic interviewer tracks three dimensions:
+1. Add a collector function in `introspect.ts` (follow the `measureMemoryRecall` pattern)
+2. Add thresholds in `references/metric-thresholds.md`
+3. Add playbooks in `references/playbooks.md` (WARNING + CRITICAL variants)
+4. Register the playbook in `prescribe.ts`'s `getPlaybook()` switch
+5. Add an executor in `evolve.ts` if the playbook uses script mode
 
-| Dimension | Weight | Measures |
-|-----------|--------|----------|
-| Goal clarity | 40% | What exactly should this do and for whom? |
-| Constraint clarity | 30% | What boundaries, limits, or requirements exist? |
-| Success criteria | 30% | How will we know it's done correctly? |
+### Adding a New Playbook
 
-**Ambiguity** = 1 − (goal × 0.40 + constraints × 0.30 + success × 0.30)
+1. Define it in `references/playbooks.md` with target file, metric command, and constraints
+2. Add it to the `getPlaybook()` registry in `prescribe.ts`
+3. If script mode: add a case in `evolve.ts`'s execution switch
+4. If file mode: autoloop handles it automatically via program.md
 
-The interview gate passes when ambiguity ≤ 0.20 (80% clarity). The output is an immutable **seed specification** — a YAML file with goal, constraints, acceptance criteria, an ontology (domain model), evaluation principles, and exit conditions.
+### Adjusting Thresholds
 
-### Three-Stage Evaluation
-
-| Stage | Cost | What It Checks |
-|-------|------|----------------|
-| **1. Mechanical** | $0 | Compile, lint, test, coverage — automated checks |
-| **2. Semantic** | Low | Each acceptance criterion against evidence in the artifact |
-| **3. Consensus** | Medium | Multi-perspective deliberation (Proposer vs. Devil's Advocate vs. Synthesizer) |
-
-Each gate must pass before the next. Stage 3 only triggers on drift, uncertain scores, or explicit request.
-
-### Unstuck Personas
-
-Each persona attacks stagnation from a fundamentally different angle. The auto-selection logic matches problem signals to the right persona:
-
-| Signal Words | → Persona |
-|-------------|-----------|
-| "error", "can't", "won't let me", "constraint" | Hacker |
-| "don't understand", "unexpected", "why" | Researcher |
-| "too complex", "too many", "overwhelming" | Simplifier |
-| "keeps breaking", "touching everything" | Architect |
-| "wrong approach", "step back" | Contrarian |
+Edit `references/metric-thresholds.md` and the corresponding constants in `introspect.ts`. The system will auto-calibrate — if composite stays above 90 for 2+ weeks, tighten targets.
 
 ---
 
 ## Credits
 
-This project is adapted from **[Q00/ouroboros](https://github.com/Q00/ouroboros)** by [@Q00](https://github.com/Q00) — a specification-first AI development system that treats AI like a junior developer: it needs a clear spec before it writes code.
+Adapted from **[Q00/ouroboros](https://github.com/Q00/ouroboros)** by [@Q00](https://github.com/Q00) — a specification-first AI development system. Also inspired by [potentialInc/claude-ooo](https://github.com/potentialInc/claude-ooo) and [karpathy/autoresearch](https://github.com/karpathy) patterns.
 
-Key concepts ported from the upstream project:
-- **Socratic Interview** → ambiguity scoring → seed specification workflow
-- **3-stage evaluation pipeline** (mechanical → semantic → consensus)
-- **Ontological analysis** (Essence, Root Cause, Prerequisites, Hidden Assumptions)
-- **Lateral-thinking agent personas** (Hacker, Researcher, Simplifier, Architect, Contrarian)
-
-Also inspired by patterns from [potentialInc/claude-ooo](https://github.com/potentialInc/claude-ooo), a downstream fork that extended the ouroboros interviewer and evaluator agents.
-
-Zouroboros is a clean-room re-implementation for the Zo Computer ecosystem — zero Python dependencies, native TypeScript/Bun, Zo Skills format, and IDENTITY persona integration.
+Self-enhancement architecture designed and built on [Zo Computer](https://zocomputer.com).
 
 ---
 

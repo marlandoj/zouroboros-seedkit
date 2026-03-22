@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { parseArgs } from "util";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "fs";
+import { join, resolve } from "path";
 import { randomUUID } from "crypto";
 
 const { values, positionals } = parseArgs({
@@ -19,6 +19,141 @@ const { values, positionals } = parseArgs({
 
 const subcommand = positionals[0] || "interview";
 
+// --- Seed Registry ---
+
+const REGISTRY_PATH = resolve("/home/workspace/seeds/registry.json");
+const SEEDS_DIR = resolve("/home/workspace/seeds");
+
+interface SeedRegistryEntry {
+  id: string;
+  file: string;
+  created: string;
+  status: "draft" | "active" | "completed" | "superseded";
+  goal_summary: string;
+  tags: string[];
+  evaluations: Array<{ eval_id: string; date: string; stage2_score: number; stage3_verdict: string | null }>;
+  last_evaluated: string | null;
+}
+
+interface SeedRegistry {
+  version: number;
+  seeds: SeedRegistryEntry[];
+}
+
+function loadRegistry(): SeedRegistry {
+  if (existsSync(REGISTRY_PATH)) {
+    try {
+      return JSON.parse(readFileSync(REGISTRY_PATH, "utf-8"));
+    } catch {
+      return { version: 1, seeds: [] };
+    }
+  }
+  return { version: 1, seeds: [] };
+}
+
+function saveRegistry(registry: SeedRegistry): void {
+  const dir = join(REGISTRY_PATH, "..");
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  writeFileSync(REGISTRY_PATH, JSON.stringify(registry, null, 2) + "\n");
+}
+
+function parseSeedIdAndGoal(filePath: string): { id: string; goal: string; status: string; created: string } | null {
+  try {
+    const content = readFileSync(filePath, "utf-8");
+    const idMatch = content.match(/^id:\s*"?([^\s"]+)"?\s*$/m);
+    const statusMatch = content.match(/^status:\s*"?([^\s"]+)"?\s*$/m);
+    const createdMatch = content.match(/^created:\s*"?([^\s"]+)"?\s*$/m);
+
+    // Goal: handle block scalar (>) and inline
+    let goal = "";
+    const goalBlockMatch = content.match(/^goal:\s*>\s*\n((?:\s{2,}.+\n?)+)/m);
+    if (goalBlockMatch) {
+      goal = goalBlockMatch[1].replace(/^\s+/gm, "").replace(/\n/g, " ").trim();
+    } else {
+      const goalMatch = content.match(/^goal:\s*"?(.+?)"?\s*$/m);
+      if (goalMatch) goal = goalMatch[1];
+    }
+
+    if (!idMatch) return null;
+    return {
+      id: idMatch[1],
+      goal: goal.slice(0, 120),
+      status: statusMatch?.[1] || "draft",
+      created: createdMatch?.[1] || new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function registerSeed(seedPath: string): SeedRegistryEntry | null {
+  const parsed = parseSeedIdAndGoal(seedPath);
+  if (!parsed) {
+    console.error(`Could not parse seed ID from: ${seedPath}`);
+    return null;
+  }
+
+  const registry = loadRegistry();
+
+  // Check if already registered
+  const existing = registry.seeds.find(s => s.id === parsed.id);
+  if (existing) {
+    // Update goal/status if changed
+    existing.goal_summary = parsed.goal;
+    existing.status = parsed.status as any;
+    saveRegistry(registry);
+    return existing;
+  }
+
+  const relPath = seedPath.startsWith(SEEDS_DIR)
+    ? seedPath.slice(SEEDS_DIR.length + 1)
+    : seedPath;
+
+  const entry: SeedRegistryEntry = {
+    id: parsed.id,
+    file: relPath.startsWith("/") ? relPath : relPath,
+    created: parsed.created,
+    status: parsed.status as any,
+    goal_summary: parsed.goal,
+    tags: extractTags(parsed.id, parsed.goal),
+    evaluations: [],
+    last_evaluated: null,
+  };
+
+  registry.seeds.push(entry);
+  saveRegistry(registry);
+  return entry;
+}
+
+function extractTags(id: string, goal: string): string[] {
+  const tags: string[] = [];
+  const combined = `${id} ${goal}`.toLowerCase();
+  const tagKeywords: Record<string, string[]> = {
+    memory: ["memory", "wikilink", "fact", "episode", "procedure"],
+    eval: ["eval", "evaluation", "stage", "consensus"],
+    swarm: ["swarm", "orchestrat", "routing", "executor"],
+    integration: ["integration", "wire", "closed-loop"],
+    enforcement: ["enforcement", "enforce", "auto-correct", "validation"],
+    intelligence: ["intelligence", "stagnation", "streaming", "capture"],
+  };
+  for (const [tag, keywords] of Object.entries(tagKeywords)) {
+    if (keywords.some(kw => combined.includes(kw))) tags.push(tag);
+  }
+  return tags;
+}
+
+function backfillRegistry(): number {
+  if (!existsSync(SEEDS_DIR)) return 0;
+  const files = readdirSync(SEEDS_DIR).filter(f => f.match(/^seed-.*\.ya?ml$/));
+  let count = 0;
+  for (const file of files) {
+    const fullPath = join(SEEDS_DIR, file);
+    const result = registerSeed(fullPath);
+    if (result) count++;
+  }
+  return count;
+}
+
 function printHelp() {
   console.log(`
 spec-first-interview — Socratic interview & seed specification generator
@@ -30,6 +165,7 @@ SUBCOMMANDS:
   interview   Start or display interview prompts (default)
   seed        Generate a seed YAML from interview notes
   score       Score ambiguity of a request
+  list        List all registered seeds from the registry
 
 OPTIONS:
   --topic, -t     Topic for interview (e.g., "Build a webhook retry system")
@@ -42,6 +178,7 @@ EXAMPLES:
   bun interview.ts --topic "Build a webhook retry system"
   bun interview.ts seed --from ./interview-notes.md
   bun interview.ts score --request "Make the site faster"
+  bun interview.ts list
 `);
 }
 
@@ -213,6 +350,37 @@ switch (subcommand) {
     writeFileSync(outPath, seedYaml);
     console.log(`Seed template written to: ${outPath}`);
     console.log("Edit the TODO fields with actual requirements from your interview.");
+
+    // Auto-register in seed registry
+    const registered = registerSeed(resolve(outPath));
+    if (registered) {
+      console.log(`Registered in seed registry: ${registered.id}`);
+    }
+    break;
+  }
+
+  case "list": {
+    // Backfill on first run to pick up existing seed-*.yaml files
+    const backfilled = backfillRegistry();
+    if (backfilled > 0) {
+      console.log(`Backfilled ${backfilled} seed(s) into registry.\n`);
+    }
+
+    const registry = loadRegistry();
+    if (registry.seeds.length === 0) {
+      console.log("No seeds registered. Generate one with: bun interview.ts seed --topic \"...\"");
+      break;
+    }
+
+    console.log(`\nSeed Registry (${registry.seeds.length} seeds)\n${"─".repeat(60)}`);
+    for (const seed of registry.seeds) {
+      const evalCount = seed.evaluations.length;
+      const lastEval = seed.last_evaluated ? ` | last eval: ${seed.last_evaluated.slice(0, 10)}` : "";
+      console.log(`  ${seed.status.padEnd(10)} ${seed.id}`);
+      console.log(`             ${seed.goal_summary.slice(0, 80)}`);
+      console.log(`             tags: [${seed.tags.join(", ")}] | evals: ${evalCount}${lastEval}`);
+      console.log();
+    }
     break;
   }
 
