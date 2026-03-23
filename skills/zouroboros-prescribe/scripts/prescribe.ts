@@ -329,6 +329,41 @@ function getPlaybook(metric: MetricResult): Playbook {
             requiresApproval: false,
           };
 
+    case "Skill Effectiveness":
+      return isCritical
+        ? {
+            id: "N-tool-call-optimization",
+            name: "Tool Call Optimization",
+            description: "Analyze failing tool calls and fix argument patterns, timeout handling, or error recovery",
+            targetFile: null,
+            metricCommand: `sqlite3 "${MEMORY_DB}" "SELECT CAST(SUM(CASE WHEN outcome='success' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 FROM skill_executions WHERE created_at > datetime('now', '-14 days');"`,
+            metricDirection: "higher_is_better",
+            constraints: [
+              "Only modify error handling and argument validation",
+              "Never change core skill logic without approval",
+              "Max 2 skills fixed per cycle",
+            ],
+            maxFiles: 2,
+            requiresApproval: true,
+            approvalReason: "Modifying skill scripts affects live system behavior",
+          }
+        : {
+            id: "M-skill-error-pattern-fix",
+            name: "Skill Error Pattern Fix",
+            description: "Identify top error patterns in skill executions and generate targeted fixes",
+            targetFile: null,
+            metricCommand: `sqlite3 "${MEMORY_DB}" "SELECT CAST(SUM(CASE WHEN outcome='success' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 FROM skill_executions WHERE created_at > datetime('now', '-14 days');"`,
+            metricDirection: "higher_is_better",
+            constraints: [
+              "Read-only analysis first, then targeted fixes",
+              "Only fix error handling and input validation",
+              "Max 1 skill file modified per cycle",
+            ],
+            maxFiles: 1,
+            requiresApproval: true,
+            approvalReason: "Skill code modifications require human review",
+          };
+
     default:
       return {
         id: "X-unknown",

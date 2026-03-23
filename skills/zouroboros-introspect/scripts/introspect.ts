@@ -9,6 +9,7 @@
  *   4. Eval Calibration (Stage 3 override rate)
  *   5. Procedure Freshness (stale procedure ratio)
  *   6. Episode Velocity (success trend over 14 days)
+ *   7. Skill Effectiveness (per-skill success rate from skill_executions)
  *
  * Usage: bun introspect.ts [--json] [--store] [--verbose]
  */
@@ -113,7 +114,7 @@ async function measureMemoryRecall(): Promise<MetricResult> {
   const evalScript = join(MEMORY_SCRIPTS, "eval-continuation.ts");
 
   if (!existsSync(evalScript)) {
-    return fallback("Memory Recall", 0.25, "eval-continuation.ts not found");
+    return fallback("Memory Recall", 0.22, "eval-continuation.ts not found");
   }
 
   const result = run(`bun "${evalScript}" 2>&1`);
@@ -129,7 +130,7 @@ async function measureMemoryRecall(): Promise<MetricResult> {
       const cases = parseInt(casesMatch[1]);
       const passed = parseInt(passedMatch[1]);
       const rate = cases > 0 ? passed / cases : 0;
-      return buildMetric("Memory Recall", rate, 0.85, 0.70, 0.25,
+      return buildMetric("Memory Recall", rate, 0.85, 0.70, 0.22,
         `${passed}/${cases} fixtures passed (${(rate * 100).toFixed(1)}%)`,
         rate < 0.85
           ? "Add continuation fixtures for missed cases; tune graph-boost weights"
@@ -138,7 +139,7 @@ async function measureMemoryRecall(): Promise<MetricResult> {
     return fallback("Memory Recall", 0.25, `Could not parse eval output: ${result.stdout.slice(0, 200)}`);
   }
 
-  return buildMetric("Memory Recall", passRate, 0.85, 0.70, 0.25,
+  return buildMetric("Memory Recall", passRate, 0.85, 0.70, 0.22,
     `${(passRate * 100).toFixed(1)}% fixture pass rate`,
     passRate < 0.85
       ? "Add continuation fixtures for missed cases; tune graph-boost weights"
@@ -150,7 +151,7 @@ async function measureGraphConnectivity(): Promise<MetricResult> {
   const graphScript = join(MEMORY_SCRIPTS, "graph.ts");
 
   if (!existsSync(graphScript)) {
-    return fallback("Graph Connectivity", 0.15, "graph.ts not found");
+    return fallback("Graph Connectivity", 0.14, "graph.ts not found");
   }
 
   const result = run(`bun "${graphScript}" knowledge-gaps 2>&1`);
@@ -170,14 +171,14 @@ async function measureGraphConnectivity(): Promise<MetricResult> {
         const total = parseInt(lines[0]);
         const linked = parseInt(lines[1]);
         const ratio = total > 0 ? Math.min(linked / total, 1.0) : 0;
-        return buildMetric("Graph Connectivity", ratio, 0.80, 0.60, 0.15,
+        return buildMetric("Graph Connectivity", ratio, 0.80, 0.60, 0.14,
           `${linked}/${total} facts have graph links (${(ratio * 100).toFixed(1)}%)`,
           ratio < 0.80
             ? "Run wikilink auto-capture on orphan entities; batch-link co-occurring entities"
             : "Graph connectivity is healthy");
       }
     }
-    return fallback("Graph Connectivity", 0.15, `Could not parse graph output: ${result.stdout.slice(0, 200)}`);
+    return fallback("Graph Connectivity", 0.14, `Could not parse graph output: ${result.stdout.slice(0, 200)}`);
   }
 
   const total = parseInt(totalMatch[1]);
@@ -187,7 +188,7 @@ async function measureGraphConnectivity(): Promise<MetricResult> {
 
   const detail = `${(linkedPct * 100).toFixed(1)}% linked (${total} facts, ${orphanCount} orphans, ${components} components)`;
 
-  return buildMetric("Graph Connectivity", linkedPct, 0.80, 0.60, 0.15,
+  return buildMetric("Graph Connectivity", linkedPct, 0.80, 0.60, 0.14,
     detail,
     linkedPct < 0.80
       ? `Link ${orphanCount} orphan facts; run wikilink auto-capture; merge ${components} components`
@@ -234,7 +235,7 @@ async function measureRoutingAccuracy(): Promise<MetricResult> {
     const total = outcomes.success + outcomes.failure + outcomes.resolved + outcomes.ongoing;
     const accuracy = total > 0 ? (outcomes.success + outcomes.resolved) / total : -1;
 
-    return buildMetric("Routing Accuracy", accuracy, 0.85, 0.70, 0.20,
+    return buildMetric("Routing Accuracy", accuracy, 0.85, 0.70, 0.18,
       `${total} general episodes: ${outcomes.success} success, ${outcomes.failure} failure, ${outcomes.resolved} resolved`,
       accuracy < 0.85
         ? "Investigate failure episodes; retune 6-signal weights"
@@ -245,7 +246,7 @@ async function measureRoutingAccuracy(): Promise<MetricResult> {
   const total = outcomes.success + outcomes.failure + outcomes.resolved + outcomes.ongoing;
   const accuracy = total > 0 ? (outcomes.success + outcomes.resolved) / total : -1;
 
-  return buildMetric("Routing Accuracy", accuracy, 0.85, 0.70, 0.20,
+  return buildMetric("Routing Accuracy", accuracy, 0.85, 0.70, 0.18,
     `${total} swarm episodes: ${outcomes.success} success, ${outcomes.failure} failure`,
     accuracy < 0.85
       ? "Retune 6-signal weights; add capability keywords; adjust complexity thresholds"
@@ -301,16 +302,16 @@ async function measureEvalCalibration(): Promise<MetricResult> {
     if (existsSync(MEMORY_DB)) {
       const evalEps = run(`sqlite3 "${MEMORY_DB}" "SELECT COUNT(*) FROM episodes WHERE summary LIKE '%eval%' AND created_at > datetime('now', '-30 days');" 2>&1`);
       const count = parseInt(evalEps.stdout) || 0;
-      return buildMetric("Eval Calibration", -1, 0.15, 0.30, 0.15,
+      return buildMetric("Eval Calibration", -1, 0.15, 0.30, 0.14,
         `No eval report files found (${count} eval episodes in memory)`,
         "Run three-stage-eval on recent artifacts to generate calibration data", true);
     }
-    return fallback("Eval Calibration", 0.15, "No eval data available");
+    return fallback("Eval Calibration", 0.14, "No eval data available");
   }
 
   const overrideRate = totalEvals > 0 ? stage3Overrides / totalEvals : 0;
 
-  return buildMetric("Eval Calibration", overrideRate, 0.15, 0.30, 0.15,
+  return buildMetric("Eval Calibration", overrideRate, 0.15, 0.30, 0.14,
     `${stage3Overrides}/${totalEvals} evals had Stage 3 overrides (${(overrideRate * 100).toFixed(1)}%)`,
     overrideRate > 0.15
       ? "Adjust drift threshold; add semantic fixtures; calibrate AC compliance scoring"
@@ -322,13 +323,13 @@ async function measureProcedureFreshness(): Promise<MetricResult> {
   log("Checking procedure freshness...");
 
   if (!existsSync(MEMORY_DB)) {
-    return fallback("Procedure Freshness", 0.15, "Memory DB not found");
+    return fallback("Procedure Freshness", 0.14, "Memory DB not found");
   }
 
   // Check if procedures table exists
   const tableCheck = run(`sqlite3 "${MEMORY_DB}" "SELECT name FROM sqlite_master WHERE type='table' AND name='procedures';" 2>&1`);
   if (!tableCheck.stdout.includes("procedures")) {
-    return buildMetric("Procedure Freshness", -1, 0.30, 0.60, 0.15,
+    return buildMetric("Procedure Freshness", -1, 0.30, 0.60, 0.14,
       "Procedures table not found — migrations may be needed",
       "Run: bun memory.ts migrate", true);
   }
@@ -344,14 +345,14 @@ async function measureProcedureFreshness(): Promise<MetricResult> {
   const [total, stale] = (result.stdout || "0|0").split("|").map(n => parseInt(n) || 0);
 
   if (total === 0) {
-    return buildMetric("Procedure Freshness", -1, 0.30, 0.60, 0.15,
+    return buildMetric("Procedure Freshness", -1, 0.30, 0.60, 0.14,
       "No procedures found — system has no learned workflows yet",
       "Create procedures from successful swarm runs: bun memory.ts procedures --auto <pattern>", true);
   }
 
   const staleRate = stale / total;
 
-  return buildMetric("Procedure Freshness", staleRate, 0.30, 0.60, 0.15,
+  return buildMetric("Procedure Freshness", staleRate, 0.30, 0.60, 0.14,
     `${stale}/${total} procedures stale >14d (${(staleRate * 100).toFixed(1)}%)`,
     staleRate > 0.30
       ? `Evolve ${stale} stale procedures: bun memory.ts procedures --evolve <id>`
@@ -408,12 +409,76 @@ async function measureEpisodeVelocity(): Promise<MetricResult> {
     `Trend: ${trend}`,
   ].join("; ");
 
-  return buildMetric("Episode Velocity", trendValue, 0.50, -0.20, 0.10,
+  return buildMetric("Episode Velocity", trendValue, 0.50, -0.20, 0.08,
     detail,
     trendValue < 0.50
       ? "Investigate recent failure episodes; check executor health; review infrastructure changes"
       : "Episode velocity is positive — system is improving",
     false, trend);
+}
+
+async function measureSkillEffectiveness(): Promise<MetricResult> {
+  log("Checking skill execution success rates...");
+
+  if (!existsSync(MEMORY_DB)) {
+    return fallback("Skill Effectiveness", 0.10, "Memory DB not found");
+  }
+
+  // Check if skill_executions table exists
+  const tableCheck = run(`sqlite3 "${MEMORY_DB}" "SELECT name FROM sqlite_master WHERE type='table' AND name='skill_executions';" 2>&1`);
+  if (!tableCheck.stdout.includes("skill_executions")) {
+    return buildMetric("Skill Effectiveness", -1, 0.85, 0.70, 0.10,
+      "skill_executions table not found — run: bun skill-tracker.ts migrate",
+      "Create the skill_executions table and instrument skills to record outcomes");
+  }
+
+  const query = `
+    SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END) as successes,
+      COUNT(DISTINCT skill) as unique_skills
+    FROM skill_executions
+    WHERE created_at > datetime('now', '-14 days');
+  `;
+
+  const result = run(`sqlite3 "${MEMORY_DB}" "${query.replace(/\n/g, " ")}" 2>&1`);
+  const parts = (result.stdout || "0|0|0").split("|").map(n => parseInt(n) || 0);
+  const [total, successes, uniqueSkills] = parts;
+
+  if (total === 0) {
+    return buildMetric("Skill Effectiveness", -1, 0.85, 0.70, 0.10,
+      "No skill executions recorded in last 14 days",
+      "Instrument skills to record outcomes via skill-tracker.ts");
+  }
+
+  const successRate = successes / total;
+
+  // Also get worst-performing skills
+  const worstQuery = `
+    SELECT skill,
+      COUNT(*) as total,
+      SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END) as ok
+    FROM skill_executions
+    WHERE created_at > datetime('now', '-14 days')
+    GROUP BY skill
+    HAVING total >= 3
+    ORDER BY CAST(ok AS FLOAT) / total ASC
+    LIMIT 3;
+  `;
+  const worstResult = run(`sqlite3 "${MEMORY_DB}" "${worstQuery.replace(/\n/g, " ")}" 2>&1`);
+  const worstSkills = worstResult.stdout ? worstResult.stdout.split("\n").map(l => {
+    const [skill, t, o] = l.split("|");
+    return `${skill}(${o}/${t})`;
+  }).join(", ") : "";
+
+  const detail = `${successes}/${total} executions succeeded (${(successRate * 100).toFixed(1)}%) across ${uniqueSkills} skills` +
+    (worstSkills ? `. Weakest: ${worstSkills}` : "");
+
+  return buildMetric("Skill Effectiveness", successRate, 0.85, 0.70, 0.10,
+    detail,
+    successRate < 0.85
+      ? "Analyze failing skills; fix error patterns; expand skill capabilities"
+      : "Skill effectiveness is healthy");
 }
 
 // --- Builders ---
@@ -469,6 +534,7 @@ async function main() {
     measureEvalCalibration(),
     measureProcedureFreshness(),
     measureEpisodeVelocity(),
+    measureSkillEffectiveness(),
   ]);
 
   // Compute composite score

@@ -258,6 +258,65 @@ async function executeProcedureEvolution(): Promise<{ success: boolean; detail: 
   return { success: evolved > 0, detail: `Evolved ${evolved}/${ids.length} procedures` };
 }
 
+// --- Skill Effectiveness: Script Mode Executor ---
+async function executeSkillErrorAnalysis(playbookId: string): Promise<{ success: boolean; detail: string }> {
+  if (!existsSync(MEMORY_DB)) {
+    return { success: false, detail: "Memory DB not found" };
+  }
+
+  // Check table exists
+  const tableCheck = run(`sqlite3 "${MEMORY_DB}" "SELECT name FROM sqlite_master WHERE type='table' AND name='skill_executions';" 2>&1`);
+  if (!tableCheck.stdout.includes("skill_executions")) {
+    return { success: false, detail: "skill_executions table not found — run: bun skill-tracker.ts migrate" };
+  }
+
+  console.error("  [evolve] Analyzing skill execution failures...");
+
+  // Get top failing skills with error patterns
+  const query = `
+    SELECT skill,
+      COUNT(*) as total,
+      SUM(CASE WHEN outcome = 'failure' THEN 1 ELSE 0 END) as failures,
+      GROUP_CONCAT(CASE WHEN outcome = 'failure' THEN error_message ELSE NULL END, ' | ') as errors
+    FROM skill_executions
+    WHERE created_at > datetime('now', '-14 days')
+    GROUP BY skill
+    HAVING failures > 0
+    ORDER BY CAST(failures AS FLOAT) / total DESC
+    LIMIT 5;
+  `;
+
+  const result = run(`sqlite3 "${MEMORY_DB}" "${query.replace(/\n/g, " ")}" 2>&1`);
+  if (!result.ok || !result.stdout.trim()) {
+    return { success: true, detail: "No failing skills found in last 14 days — all healthy" };
+  }
+
+  const lines = result.stdout.split("\n").filter(Boolean);
+  const analysis: string[] = [];
+
+  for (const line of lines) {
+    const [skill, total, failures, errors] = line.split("|");
+    const failRate = ((parseInt(failures) / parseInt(total)) * 100).toFixed(1);
+    const errorSummary = errors ? errors.slice(0, 200) : "no error messages recorded";
+    analysis.push(`${skill}: ${failures}/${total} failures (${failRate}%) — ${errorSummary}`);
+  }
+
+  const detail = `Skill failure analysis (${lines.length} failing skills):\n${analysis.join("\n")}`;
+  console.error(`  [evolve] ${detail}`);
+
+  // Store analysis as a memory fact for next cycle
+  const memoryTs = join(MEMORY_SCRIPTS, "memory.ts");
+  if (existsSync(memoryTs)) {
+    const factValue = `Skill error analysis ${new Date().toISOString().slice(0, 10)}: ${analysis.slice(0, 3).join("; ")}`;
+    run(`bun "${memoryTs}" store --entity "zouroboros.skill-analysis" --key "error-patterns-${new Date().toISOString().slice(0, 10)}" --value "${factValue.replace(/"/g, '\\"')}" --category fact --decay active --importance 0.7 --source evolve 2>&1`);
+  }
+
+  // For playbook N (critical), we'd modify skill files — but governor blocks this
+  // For playbook M (warning), we only do analysis + store findings
+  // Both require human approval, so this executor only does the read-only analysis
+  return { success: true, detail };
+}
+
 // --- Main ---
 async function main() {
   console.error("🐍 Zouroboros Evolve — Evolution Engine\n");
@@ -350,6 +409,12 @@ async function main() {
         } else {
           execResult = { success: false, detail: "doctor.ts not found" };
         }
+        break;
+      }
+
+      case "M-skill-error-pattern-fix":
+      case "N-tool-call-optimization": {
+        execResult = await executeSkillErrorAnalysis(rx.playbook.id);
         break;
       }
 

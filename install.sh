@@ -24,6 +24,7 @@ echo "Installing foundational skills..."
 cp -r "$SCRIPT_DIR/skills/spec-first-interview" "$SKILLS_DIR/"
 cp -r "$SCRIPT_DIR/skills/three-stage-eval" "$SKILLS_DIR/"
 cp -r "$SCRIPT_DIR/skills/unstuck-lateral" "$SKILLS_DIR/"
+cp -r "$SCRIPT_DIR/skills/autoloop" "$SKILLS_DIR/"
 
 # Install self-enhancement skills
 echo "Installing self-enhancement skills..."
@@ -47,7 +48,7 @@ echo "Verifying installation..."
 PASS=0
 FAIL=0
 
-for skill in spec-first-interview three-stage-eval zouroboros-introspect zouroboros-prescribe zouroboros-evolve; do
+for skill in spec-first-interview three-stage-eval autoloop zouroboros-introspect zouroboros-prescribe zouroboros-evolve; do
   if [ -f "$SKILLS_DIR/$skill/SKILL.md" ]; then
     echo "  ✅ $skill"
     PASS=$((PASS + 1))

@@ -86,3 +86,19 @@ Each metric maps to specific, tested remediation patterns. The prescriber select
 - **Target file:** None (uses executor tools)
 - **Metric command:** Same as above
 - **Governor: REQUIRES HUMAN APPROVAL** — executor restarts affect running tasks.
+
+## Skill Effectiveness (per-skill success rate)
+
+### When WARNING (70–85%)
+- **Pattern M: Skill Error Pattern Fix** — Analyze top error patterns from skill_executions, generate targeted fixes
+- **Target file:** Identified failing skill script
+- **Metric command:** `sqlite3 .zo/memory/shared-facts.db "SELECT CAST(SUM(CASE WHEN outcome='success' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 FROM skill_executions WHERE created_at > datetime('now', '-14 days');"`
+- **Constraints:** Read-only analysis first, then targeted fix. Max 1 skill file per cycle.
+- **Governor: REQUIRES HUMAN APPROVAL** — skill code modifications require human review.
+
+### When CRITICAL (<70%)
+- **Pattern N: Tool Call Optimization** — Fix argument patterns, timeout handling, error recovery in failing skills
+- **Target file:** Identified failing skill scripts
+- **Metric command:** Same as above
+- **Constraints:** Only modify error handling and argument validation. Max 2 skills per cycle.
+- **Governor: REQUIRES HUMAN APPROVAL** — modifying skill scripts affects live system behavior.

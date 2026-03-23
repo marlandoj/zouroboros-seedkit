@@ -27,12 +27,13 @@ Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros). Native TypeScrip
 | **spec-first-interview** | Socratic interview → ambiguity scoring → immutable seed YAML |
 | **three-stage-eval** | Mechanical → Semantic → Consensus verification pipeline |
 | **unstuck-lateral** | 5 lateral-thinking personas to break through stagnation |
+| **autoloop** | Autonomous single-metric file optimization loop (inspired by karpathy/autoresearch) |
 
 ### Self-Enhancement Skills (the closed loop)
 
 | Skill | Description |
 |-------|-------------|
-| **zouroboros-introspect** | Self-diagnostic health scorecard across 6 system metrics |
+| **zouroboros-introspect** | Self-diagnostic health scorecard across 7 system metrics |
 | **zouroboros-prescribe** | Auto-generates improvement seeds from scorecard, with governor safety gate |
 | **zouroboros-evolve** | Executes prescriptions, measures delta, reverts regressions |
 
@@ -82,7 +83,7 @@ git clone https://github.com/marlandoj/Zo-Ouroboros.git /tmp/zouroboros && bash 
 - SQLite3 CLI
 - [zo-memory-system](https://github.com/zocomputer/skills) skill (for memory DB, graph, episodes, procedures)
 - Optional: [Ollama](https://ollama.ai) with `qwen2.5:1.5b` + `nomic-embed-text` (for memory gate + embeddings)
-- Optional: [autoloop](https://github.com/zocomputer/skills) skill (for file-targeting metric optimization)
+- Autoloop skill (bundled — for file-targeting metric optimization)
 
 ---
 
@@ -141,24 +142,25 @@ Create a scheduled agent that runs the pipeline daily. The Zouroboros persona ha
 
 ### How It Works
 
-1. **Introspect** — Measures 6 health metrics across memory, graph, routing, eval, procedures, and episode velocity. Outputs a composite score (0–100) and ranks improvement opportunities.
+1. **Introspect** — Measures 7 health metrics across memory, graph, routing, eval, procedures, and episode velocity. Outputs a composite score (0–100) and ranks improvement opportunities.
 
-2. **Prescribe** — Maps the weakest metric to one of 12 playbooks. Generates a seed YAML (spec-first format) and optionally a program.md (autoloop format). A governor gate blocks high-risk prescriptions.
+2. **Prescribe** — Maps the weakest metric to one of 14 playbooks. Generates a seed YAML (spec-first format) and optionally a program.md (autoloop format). A governor gate blocks high-risk prescriptions.
 
 3. **Evolve** — Executes the prescription via autoloop (file-targeting) or script mode (procedural). Captures pre/post scorecards. Reverts on regression.
 
-### 6 Health Metrics
+### 7 Health Metrics
 
 | Metric | Source | Target | Weight |
 |--------|--------|--------|--------|
-| Memory Recall | Continuation eval fixture pass rate | ≥ 85% | 0.25 |
-| Graph Connectivity | Knowledge graph orphan fact ratio | ≥ 80% linked | 0.15 |
-| Routing Accuracy | Swarm episode success rate | ≥ 85% | 0.20 |
-| Eval Calibration | Stage 3 override rate | ≤ 15% | 0.15 |
-| Procedure Freshness | Stale procedure ratio (14+ days) | ≤ 30% | 0.15 |
-| Episode Velocity | 7-day success trend vs prior 7 days | Positive | 0.10 |
+| Memory Recall | Continuation eval fixture pass rate | ≥ 85% | 0.22 |
+| Graph Connectivity | Knowledge graph orphan fact ratio | ≥ 80% linked | 0.14 |
+| Routing Accuracy | Swarm episode success rate | ≥ 85% | 0.18 |
+| Eval Calibration | Stage 3 override rate | ≤ 15% | 0.14 |
+| Procedure Freshness | Stale procedure ratio (14+ days) | ≤ 30% | 0.14 |
+| Episode Velocity | 7-day success trend vs prior 7 days | Positive | 0.08 |
+| Skill Effectiveness | Per-skill success rate from skill_executions | ≥ 85% | 0.10 |
 
-### 12 Playbooks
+### 14 Playbooks
 
 | ID | Playbook | Metric | Severity |
 |----|----------|--------|----------|
@@ -174,6 +176,8 @@ Create a scheduled agent that runs the pipeline daily. The Zouroboros persona ha
 | J | Procedure Regeneration | Procedure Freshness | CRITICAL |
 | K | Failure Root-Cause Analysis | Episode Velocity | WARNING |
 | L | Executor Health Check | Episode Velocity | CRITICAL ⚠️ |
+| M | Skill Error Pattern Fix | Skill Effectiveness | WARNING ⚠️ |
+| N | Tool Call Optimization | Skill Effectiveness | CRITICAL ⚠️ |
 
 ⚠️ = Requires human approval (governor blocks autonomous execution)
 
@@ -262,9 +266,15 @@ Zouroboros/
 │   ├── unstuck-lateral/                # 5 lateral-thinking personas
 │   │   ├── SKILL.md
 │   │   └── references/
+│   ├── autoloop/                       # Autonomous metric optimization loop
+│   │   ├── SKILL.md
+│   │   ├── scripts/autoloop.ts
+│   │   ├── assets/template.program.md
+│   │   └── references/
 │   ├── zouroboros-introspect/          # Self-diagnostic scorecard
 │   │   ├── SKILL.md
 │   │   ├── scripts/introspect.ts
+│   │   ├── scripts/skill-tracker.ts   # Skill execution recorder
 │   │   └── references/metric-thresholds.md
 │   ├── zouroboros-prescribe/           # Self-prescription engine
 │   │   ├── SKILL.md
@@ -300,7 +310,7 @@ Zouroboros/
   │  INTROSPECT │→│  PRESCRIBE  │→│   EVOLVE    │
   │  (measure)  │ │  (plan)     │ │  (execute)  │
   │             │ │             │ │             │
-  │ 6 metrics   │ │ 12 playbooks│ │ Autoloop or │
+  │ 7 metrics   │ │ 14 playbooks│ │ Autoloop or │
   │ Composite   │ │ Governor    │ │ Script mode │
   │ score 0-100 │ │ Seed YAML   │ │ Pre/post    │
   │             │ │ Program.md  │ │ scorecard   │
@@ -324,7 +334,7 @@ Zouroboros builds on these Zo Computer subsystems:
 |--------|------|-----------|
 | **zo-memory-system** | Facts, episodes, procedures, graph, embeddings | Yes |
 | **zo-swarm-orchestrator** | Parallel task execution with 6-signal routing | For routing metrics |
-| **autoloop** | Single-metric file optimization | For file-targeting playbooks |
+| **autoloop** | Single-metric file optimization (bundled) | For file-targeting playbooks |
 | **Ollama** | Local inference (memory gate, auto-capture, procedure evolution) | For memory gate |
 
 ---
