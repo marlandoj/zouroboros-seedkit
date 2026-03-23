@@ -192,34 +192,59 @@ The governor prevents runaway self-modification:
 
 ### Spec-First Interview
 
-Scores ambiguity across three dimensions:
+Before building anything complex, the interview skill runs a Socratic dialogue to surface ambiguity. It only asks questions — it never promises to build. Once clarity reaches 80% across three dimensions (goal 40%, constraints 30%, success criteria 30%), it generates an immutable seed YAML.
 
-| Dimension | Weight |
-|-----------|--------|
-| Goal clarity | 40% |
-| Constraint clarity | 30% |
-| Success criteria | 30% |
+**In conversation:**
 
-**Ambiguity** = 1 − (goal × 0.40 + constraints × 0.30 + success × 0.30)
+> **You:** "I need better logging in the API."
+>
+> **Zo:** "What does 'better' mean here — more log volume, structured formats, or centralized collection? Are there specific endpoints that are hard to debug today?"
+>
+> **You:** "Structured JSON logs, mainly for the payment endpoints. We're flying blind on failed transactions."
+>
+> **Zo:** "What's the retention requirement? And should these logs include PII like customer IDs, or do we need to mask those?"
+>
+> *(5–8 questions later, clarity ≥ 0.80)*
+>
+> **Zo:** "Requirements are clear. Generating seed spec..." → outputs `seed-structured-logging.yaml`
 
-Gate passes at ambiguity ≤ 0.20. Output is an immutable seed YAML.
+**Ambiguity scoring:**
 
 ```bash
 bun Skills/spec-first-interview/scripts/interview.ts score --request "Make the site faster"
 # → Ambiguity: 0.98 — HIGH AMBIGUITY
 
 bun Skills/spec-first-interview/scripts/interview.ts score \
-  --request "Add Redis caching to the /api/products endpoint using a 5-minute TTL that invalidates on product updates"
+  --request "Add Redis caching to /api/products with 5-min TTL, invalidate on product updates"
 # → Ambiguity: 0.15 — READY
 ```
 
 ### Three-Stage Evaluation
 
+After building something, the eval pipeline verifies it against the seed spec in three progressive stages. Each stage is a gate — if it fails, you stop and fix before moving on.
+
+**In conversation:**
+
+> **You:** "I finished the structured logging. Can you verify it?"
+>
+> **Zo:** *(Stage 1 — Mechanical)* "Running lint, tests, type checks... all passing, 91% coverage. Moving to semantic evaluation."
+>
+> **Zo:** *(Stage 2 — Semantic)* "Checking acceptance criteria against the seed:
+> ✓ JSON format with timestamp, level, context fields
+> ✓ Payment endpoints emit structured logs on failure
+> ✗ PII masking not implemented — customer_id appears in plaintext
+> Score: 0.74 — triggering consensus stage."
+>
+> **Zo:** *(Stage 3 — Consensus, 3 perspectives)*
+> **Proposer:** "Core logging works. PII issue is a one-line fix."
+> **Devil's Advocate:** "Shipping unmasked PII to log aggregators is a compliance violation. This isn't a minor gap."
+> **Synthesizer:** "NEEDS WORK. Fix PII masking, then resubmit."
+
 | Stage | Cost | Checks |
 |-------|------|--------|
 | 1. Mechanical | $0 | Compile, lint, test, coverage |
 | 2. Semantic | Low | AC compliance, goal alignment, drift score |
-| 3. Consensus | Medium | 3-perspective deliberation (if drift > 0.3 or score uncertain) |
+| 3. Consensus | Medium | 3-perspective deliberation (if drift > 0.3 or score in 0.7–0.8) |
 
 ```bash
 bun Skills/three-stage-eval/scripts/evaluate.ts \
@@ -228,7 +253,29 @@ bun Skills/three-stage-eval/scripts/evaluate.ts \
 
 ### Unstuck Lateral
 
-Auto-selects the right persona based on problem signals:
+When you're stuck — same error after multiple attempts, going in circles, or the eval keeps returning NEEDS WORK — the unstuck skill auto-selects a lateral-thinking persona based on your problem description.
+
+**In conversation:**
+
+> **You:** "I keep hitting a 403 on the webhook endpoint. I've tried 5 different auth approaches."
+>
+> **Zo** *(auto-selects Hacker):* "You're assuming you need direct API access. What if you delegated auth to a service account that already has the permissions? Or proxied through an internal endpoint that bypasses the external auth layer?"
+
+> **You:** "I don't understand why this returns stale data. The cache should have invalidated."
+>
+> **Zo** *(auto-selects Researcher):* "Let's stop guessing. Have we confirmed the invalidation event actually fires? Let me check the event bus logs for the last 24 hours and compare timestamps against the cache TTL."
+
+> **You:** "This feature is ballooning. I'm touching 12 files just to add one field."
+>
+> **Zo** *(auto-selects Simplifier):* "Drop the persistence layer for MVP. Store it in memory only. That eliminates 8 of those 12 files. Ship that, get feedback, then decide if you need the rest."
+
+> **You:** "Every change to the request handler breaks something else."
+>
+> **Zo** *(auto-selects Architect):* "You're hitting high coupling. The handler mixes routing, validation, and response formatting. Extract validation into a middleware layer. Simple changes stop cascading."
+
+> **You:** "Should we even be building this? Nobody asked for it."
+>
+> **Zo** *(auto-selects Contrarian):* "Then don't build it. Run a 5-question user survey first. If fewer than 30% say they want this, you just saved two weeks."
 
 | Signal | Persona |
 |--------|---------|
