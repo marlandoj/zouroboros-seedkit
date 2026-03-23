@@ -6,13 +6,7 @@ Zouroboros is a self-enhancing AI development toolkit. It starts with specificat
 
 The snake eats its own tail.
 
-```
-Interview → Seed → Execute → Evaluate
-    ↑                           ↓
-    ↑     Introspect → Prescribe → Evolve
-    ↑         ↑                      ↓
-    └─────────┴──────────────────────┘
-```
+![Zouroboros Self-Enhancement Pipeline](zouroboros-diagram.png)
 
 Adapted from [Q00/ouroboros](https://github.com/Q00/ouroboros). Native TypeScript/Bun, zero Python dependencies, designed as [Zo Skills](https://agentskills.io/specification).
 
